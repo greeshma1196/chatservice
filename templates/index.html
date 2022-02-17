@@ -3,11 +3,11 @@
 
 <head>
   <title>Flask_Chat_App</title>
+  <link rel="stylesheet" href="./main.css">
 </head>
 
-<body>
-
-  <h3 style='color: #ccc;font-size: 30px;'>No message yet..</h3>
+<body style="text-align: center;">
+  <h1 class="chat_service">Welcome to Chatbox</h1>
   <div class="message_holder"></div>
 
   <form action="" method="POST">
@@ -23,35 +23,30 @@
   </script>
   <script type="text/javascript">
     const socket = io()
-  //const nameArray = new Array()
 
     socket.on('connect', function () {
-      socket.emit('my event', {
-        data: 'User Connected'
-      })
+      socket.emit('check previous messages')
     })
     var form = $('form').on('submit', function (e) {
       e.preventDefault()
       let user_name = $('input.username').val()
       let user_input = $('input.message').val()
-      socket.emit('my chat', {
+      socket.emit('send message', {
         user_name: user_name,
         message: user_input
       })
-      $('input.message').val('').focus()
+      $('input.username').val('').focus()
+      $('input.message').val('')
     })
-    socket.on('my response', function (msg) {
+    socket.on('new message', function (msg) {
       if (typeof msg.user_name !== 'undefined') {
-        $('h3').remove()
         $('div.message_holder').append('<div><b style="color: #000">' + msg.user_name + '</b> ' + msg.message +
           '</div>')
       }
     })
-    socket.on('send previous messages', function (msg){
-      console.log(msg)
-      $('h3').remove()
+    socket.on('receive chat history', function (msg){
       for (let i=0; i<msg.length; i++) {
-        $('div.message_holder').append('<div><b style="color: #000">' + msg[i][0]+ '</b> ' + msg[i][1] + '</div>')
+        $('div.message_holder').append('<div><b style="color: #000">' + msg[i][1]+ '</b> ' + msg[i][2] + '</div>')
       } 
     })
   </script>
