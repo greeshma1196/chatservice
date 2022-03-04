@@ -1,0 +1,58 @@
+version: '3.8'
+services:
+  message-queue: 
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning
+    volumes: 
+      - message-queue:/data
+  chat-service-1: 
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - chat-service-1:/data
+    environment:
+      - IS_LEADER=true
+      - FOLLOWERS=chat-service-2,chat-service-3
+      - PORT=5000
+  chat-service-2: 
+    build: .
+    ports:
+      - "5001:5000"
+    volumes:
+      - chat-service-2:/data
+    depends_on:
+      - chat-service-1
+    environment:
+      - IS_LEADER=false
+      - PORT=5000
+  chat-service-3: 
+    build: .
+    ports:
+      - "5002:5000"
+    volumes:
+      - chat-service-3:/data
+    depends_on:
+      - chat-service-1
+    environment:
+      - IS_LEADER=false
+      - PORT=5000
+  nginx: 
+    image: nginx:latest
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+volumes:
+  message-queue:
+    driver: local
+  chat-service-1:
+    driver: local
+  chat-service-2:
+    driver: local
+  chat-service-3:
+    driver: local
